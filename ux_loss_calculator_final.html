@@ -1,0 +1,297 @@
+
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Калькулятор потерь от UX — Aburatov</title>
+<style>
+  body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; max-width:920px;margin:18px auto;padding:20px;color:#0f172a;background:#f8fafc;}
+  h1{font-size:1.6rem;margin-bottom:0.2rem;}
+  p.lead{color:#475569;margin-top:0;margin-bottom:1rem;}
+  .card{border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:12px;box-shadow:0 1px 2px rgba(2,6,23,0.03);background:white;}
+  label{display:block;margin-bottom:6px;font-weight:600;}
+  select,input[type=number]{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef6;margin-bottom:10px;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  button{background:#0ea5a4;color:white;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;}
+  .result{padding:14px;border-radius:10px;background:#f8fafc;border:1px dashed #cbd5e1;margin-top:12px;}
+  pre{white-space:pre-wrap;background:#0f172a;color:#e6eef6;padding:10px;border-radius:8px;font-size:0.9rem;}
+  small{color:#64748b}
+  footer{margin-top:18px;color:#64748b;font-size:0.9rem}
+  .badge{display:inline-block;background:#eef2ff;color:#3730a3;padding:6px 8px;border-radius:8px;font-weight:700;margin-right:6px}
+  .actions{margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
+  .btn-download{background:#0369a1;padding:10px 14px;color:white;border-radius:8px;text-decoration:none;font-weight:700;border:none;cursor:pointer}
+  .btn-audit{background:#0ea5a4;padding:10px 14px;color:white;border-radius:8px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center}
+  @media(max-width:700px){.row{grid-template-columns:1fr} .actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<h1>Калькулятор потерь от плохого UX</h1>
+<p class="lead">Оцените ориентировочные потери вашего бизнеса из-за низкой конверсии сайта. Работает без доступа к аналитики — на основе диапазонов и эталонных коэффициентов.</p>
+
+<div class="card">
+  <label>Ниша</label>
+  <select id="niche">
+    <option value="services">Услуги (парикмахер, клиника, ремонт)</option>
+    <option value="ecom">E‑commerce</option>
+    <option value="b2b">B2B (продажи, софт)</option>
+    <option value="edu">Образование / курсы</option>
+    <option value="medical">Медицина / стоматология</option>
+    <option value="other">Другое</option>
+  </select>
+
+  <label>Примерный месячный трафик сайта</label>
+  <select id="visitors">
+    <option value="200">Менее 500</option>
+    <option value="1000">500 — 2 000</option>
+    <option value="3500">2 000 — 5 000</option>
+    <option value="8000">Больше 5 000</option>
+    <option value="0">Не знаю</option>
+  </select>
+
+  <label>Средний чек / средняя прибыль с заказа (в рублях)</label>
+  <select id="avgCheck">
+    <option value="2000">Менее 5 000</option>
+    <option value="12000">5 000 — 20 000</option>
+    <option value="40000">20 000 — 100 000</option>
+    <option value="150000">Больше 100 000</option>
+  </select>
+
+  <label>Текущая конверсия сайта (оцените)</label>
+  <select id="conv">
+    <option value="0.005">Менее 1%</option>
+    <option value="0.02">1 — 3%</option>
+    <option value="0.04">3 — 5%</option>
+    <option value="0.06">Больше 5%</option>
+    <option value="-1">Не знаю</option>
+  </select>
+
+  <div class="row">
+    <div>
+      <label>Адаптивность (мобильная версия)</label>
+      <select id="mobile">
+        <option value="0">Да — хорошо</option>
+        <option value="0.2">Частично</option>
+        <option value="0.4">Плохо / нет</option>
+        <option value="0.15">Не знаю</option>
+      </select>
+    </div>
+    <div>
+      <label>Скорость загрузки</label>
+      <select id="speed">
+        <option value="0">Быстро</option>
+        <option value="0.12">Средне</option>
+        <option value="0.25">Медленно</option>
+        <option value="0.1">Не знаю</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Понятность CTA / навигации</label>
+  <select id="cta">
+    <option value="0">Ясно и просто</option>
+    <option value="0.12">Есть проблемы</option>
+    <option value="0.25">Серьезные проблемы</option>
+    <option value="0.1">Не знаю</option>
+  </select>
+
+  <label>Какой результат вы хотите получить от калькулятора?</label>
+  <select id="goal">
+    <option value="revenue">Оценить потери в выручке</option>
+    <option value="clients">Оценить потерю клиентов</option>
+  </select>
+
+  <div style="margin-top:10px">
+    <button id="calc">Посчитать потери</button>
+  </div>
+</div>
+
+<div id="out" class="card" style="display:none;">
+  <h2>Результат</h2>
+  <div id="summary" class="result"></div>
+  <div id="breakdown" style="margin-top:10px;"></div>
+  <div id="advice" style="margin-top:12px;"></div>
+  <div class="actions">
+    <button id="download" class="btn-download">Скачать PDF-отчёт</button>
+    <a id="auditLink" class="btn-audit" href="https://t.me/aburatovlive" target="_blank">Заказать UX-аудит</a>
+  </div>
+  <footer>Результат ориентировочный — калькулятор использует диапазоны и допущения. Для точного аудита можно заказать персональный UX-разбор.</footer>
+</div>
+
+<!-- Скрытый контейнер для рендера PDF (мы клонируем в него финальный отчёт в чистом виде) -->
+<div id="pdfContainer" style="display:none;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const nicheBaseline = {
+  services: {current:0.02, target:0.06},
+  ecom: {current:0.025, target:0.07},
+  b2b: {current:0.007, target:0.02},
+  edu: {current:0.015, target:0.05},
+  medical: {current:0.02, target:0.06},
+  other: {current:0.02, target:0.05}
+};
+
+function numFmt(n){ return Math.round(n).toLocaleString('ru-RU'); }
+
+document.getElementById('calc').addEventListener('click', ()=> {
+  const niche = document.getElementById('niche').value;
+  let visitors = Number(document.getElementById('visitors').value);
+  const avgCheck = Number(document.getElementById('avgCheck').value);
+  let conv = Number(document.getElementById('conv').value);
+  const mobile = Number(document.getElementById('mobile').value);
+  const speed = Number(document.getElementById('speed').value);
+  const cta = Number(document.getElementById('cta').value);
+  const goal = document.getElementById('goal').value;
+
+  // если "Не знаю" по трафику — делаем консервативную оценку 800
+  if(visitors === 0) visitors = 800;
+
+  // если юзер не знает конверсию — используем нишевые baseline current
+  if(conv === -1) conv = nicheBaseline[niche].current;
+
+  // применяем штрафы за мобиль/скорость/CTA — суммируем
+  const totalPenalty = mobile + speed + cta; // например 0.3 = -30% относительной конверсии
+
+  // текущая эффективная конверсия с учётом проблем
+  const effectiveConv = Math.max(conv - totalPenalty, 0.0005); // не меньше 0.05%
+
+  // потенциальная конверсия при хорошем UX — берем target baseline
+  const potentialConv = nicheBaseline[niche].target;
+
+  const currentRevenue = visitors * effectiveConv * avgCheck;
+  const potentialRevenue = visitors * potentialConv * avgCheck;
+  const loss = Math.max(potentialRevenue - currentRevenue, 0);
+
+  // потеря клиентов (штуки)
+  const lostClients = Math.round((potentialConv - effectiveConv) * visitors);
+
+  // percentages
+  const convPercent = (effectiveConv*100).toFixed(2);
+  const potPercent = (potentialConv*100).toFixed(2);
+
+  // show
+  document.getElementById('out').style.display='block';
+  document.getElementById('summary').innerHTML = `
+    <strong>Текущая оценка:</strong><br>
+    Посетителей/мес: <span class="badge">${visitors.toLocaleString('ru-RU')}</span>
+    Средний чек: <span class="badge">${numFmt(avgCheck)} ₽</span><br>
+    Текущая конверсия (ориентировочно): <span class="badge">${convPercent}%</span><br>
+    Потенциальная конверсия (при хорошем UX): <span class="badge">${potPercent}%</span><br>
+    <hr>
+    <strong>Текущая выручка (ориентировочно):</strong> <span style="font-size:1.1rem">${numFmt(currentRevenue)} ₽/мес</span><br>
+    <strong>Потенциальная выручка:</strong> <span style="font-size:1.1rem">${numFmt(potentialRevenue)} ₽/мес</span><br>
+    <strong>Ориентировочные потери:</strong> <span style="font-size:1.2rem;color:#b91c1c">${numFmt(loss)} ₽/мес</span>
+  `;
+
+  document.getElementById('breakdown').innerHTML = `
+    <strong>Разбивка по причинам (оценочно):</strong>
+    <ul>
+      <li>Проблемы мобильной версии: ${Math.round(mobile*100)}% к ухудшению</li>
+      <li>Скорость загрузки: ${Math.round(speed*100)}% к ухудшению</li>
+      <li>Понятность CTA/структуры: ${Math.round(cta*100)}% к ухудшению</li>
+    </ul>
+    <p><small>Суммарное относительное влияние на конверсию: <strong>${Math.round(totalPenalty*100)}%</strong> (оценочно).</small></p>
+  `;
+
+  document.getElementById('advice').innerHTML = `
+    <strong>Что можно сделать прямо сейчас:</strong>
+    <ol>
+      <li>Проверить мобильную версию и упростить ключевые формы (увеличит конверсию до ${potPercent}%).</li>
+      <li>Оптимизировать скорость — начните с изображений и кеша (влияние ${Math.round(speed*100)}%).</li>
+      <li>Сделать CTA видимыми и проверяемыми (A/B тест гипотезы).</li>
+    </ol>
+    <p><strong>Рекомендация:</strong> хочу предложить бесплатный mini‑аудит (3 экрана + 3 приоритетные правки). Нажмите «Заказать UX‑аудит» чтобы написать в Telegram.</p>
+  `;
+
+  // prepare report data for download and potential reuse
+  window.__report = {
+    createdAt: new Date().toLocaleString('ru-RU'),
+    niche, visitors, avgCheck, convPercent, potPercent, currentRevenue, potentialRevenue, loss, lostClients,
+    penalties:{mobile:mobile,speed:speed,cta:cta}, totalPenalty, goal
+  };
+});
+
+// PDF generation using html2canvas -> jsPDF (handles multi-page)
+document.getElementById('download').addEventListener('click', async ()=> {
+  const r = window.__report;
+  if(!r){ alert('Сначала посчитайте потери — нажмите "Посчитать потери".'); return; }
+
+  // build a clean report markup in hidden container
+  const c = document.getElementById('pdfContainer');
+  c.style.display = 'block';
+  c.innerHTML = `
+    <div style="font-family:Arial, sans-serif;color:#111;padding:18px;">
+      <h1 style="font-size:20px;margin:0 0 8px 0;">UX — ориентировочный отчёт</h1>
+      <p style="margin:0 0 12px 0;color:#444;">Дата: ${r.createdAt}</p>
+      <h2 style="font-size:16px;margin-bottom:6px;">Ключевые параметры</h2>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        <tr><td style="padding:4px 0;"><strong>Ниша:</strong></td><td style="padding:4px 0;">${r.niche}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Посетителей/мес:</strong></td><td style="padding:4px 0;">${r.visitors.toLocaleString('ru-RU')}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Средний чек:</strong></td><td style="padding:4px 0;">${r.avgCheck.toLocaleString('ru-RU')} ₽</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Текущая (ориентировочно):</strong></td><td style="padding:4px 0;">${r.convPercent}%</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Потенциальная:</strong></td><td style="padding:4px 0;">${r.potPercent}%</td></tr>
+      </table>
+      <h2 style="font-size:16px;margin-top:12px;">Финансы</h2>
+      <p style="margin:6px 0;"><strong>Текущая выручка:</strong> ${Math.round(r.currentRevenue).toLocaleString('ru-RU')} ₽/мес</p>
+      <p style="margin:6px 0;"><strong>Потенциальная выручка:</strong> ${Math.round(r.potentialRevenue).toLocaleString('ru-RU')} ₽/мес</p>
+      <p style="margin:6px 0;color:#b91c1c;"><strong>Ориентировочные потери:</strong> ${Math.round(r.loss).toLocaleString('ru-RU')} ₽/мес</p>
+      <h2 style="font-size:16px;margin-top:12px;">Разбивка по причинам</h2>
+      <ul style="font-size:13px;color:#333;">
+        <li>Проблемы мобильной версии: ${Math.round(r.penalties.mobile*100)}%</li>
+        <li>Скорость загрузки: ${Math.round(r.penalties.speed*100)}%</li>
+        <li>Понятность CTA / структура: ${Math.round(r.penalties.cta*100)}%</li>
+      </ul>
+      <h2 style="font-size:16px;margin-top:12px;">Рекомендации</h2>
+      <ol style="font-size:13px;color:#333;">
+        <li>Проверить мобильную версию и упростить ключевые формы.</li>
+        <li>Оптимизировать скорость — начать с изображений, кеша и CDN.</li>
+        <li>Сделать CTA видимыми и протестировать гипотезы.</li>
+      </ol>
+      <p style="margin-top:10px;">Для точного аудита предлагаю бесплатный mini‑аудит (3 экрана + 3 приоритетные правки). Напишите в Telegram: <a href="https://t.me/aburatovlive">t.me/aburatovlive</a></p>
+      <hr style="margin-top:16px;border:none;border-top:1px solid #eee;">
+      <p style="font-size:12px;color:#666;">Отчёт ориентировочный — использованы диапазоны и усреднённые коэффициенты.</p>
+    </div>
+  `;
+
+  // render to canvas
+  try {
+    const el = c.firstElementChild;
+    const canvas = await html2canvas(el, {scale:2, useCORS:true, allowTaint:true});
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgProps = { width: canvas.width, height: canvas.height };
+    const imgWidth = pdfWidth - margin*2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let position = margin;
+    let heightLeft = imgHeight;
+
+    // add pages while heightLeft > 0
+    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+    heightLeft -= (pdfHeight - margin*2);
+    while (heightLeft > -1) {
+      if (heightLeft <= 0) break;
+      position = position - (pdfHeight - margin*2);
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= (pdfHeight - margin*2);
+    }
+
+    pdf.save('ux_loss_report.pdf');
+  } catch (e) {
+    console.error(e);
+    alert('Ошибка при генерации PDF: ' + e.message);
+  } finally {
+    // clean up
+    c.style.display = 'none';
+    c.innerHTML = '';
+  }
+});
+</script>
+</body>
+</html>
